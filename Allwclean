@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")"
+(cd applications/solvers/lagrangian/reactingParcelFoamCarbonTransfer/reactingHeterogenousParcelFoamCarbonTransfer && wclean) || true
+(cd applications/solvers/lagrangian/reactingParcelFoamCarbonTransfer && wclean) || true
+(cd src/lagrangian/intermediate && wclean) || true
