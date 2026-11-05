@@ -5,14 +5,12 @@ cd "$(dirname "$0")"
 : "${FOAM_USER_LIBBIN:?Please load OpenFOAM.com v2312 first}"
 : "${FOAM_USER_APPBIN:?Please load OpenFOAM.com v2312 first}"
 mkdir -p "$FOAM_USER_LIBBIN" "$FOAM_USER_APPBIN"
-echo '=== 1/3: user liblagrangianIntermediate ==='
+echo '=== 1/2: user liblagrangianIntermediate ==='
 (cd src/lagrangian/intermediate && wmake libso)
-echo '=== 2/3: reactingParcelFoamCarbonTransfer ==='
+echo '=== 2/2: reactingParcelFoamCarbonTransfer ==='
 (cd applications/solvers/lagrangian/reactingParcelFoamCarbonTransfer && wmake)
-echo '=== 3/3: reactingHeterogenousParcelFoamCarbonTransfer ==='
-(cd applications/solvers/lagrangian/reactingParcelFoamCarbonTransfer/reactingHeterogenousParcelFoamCarbonTransfer && wmake)
 echo '=== Checking the dynamically linked intermediate library ==='
-for solver in reactingParcelFoamCarbonTransfer reactingHeterogenousParcelFoamCarbonTransfer
+for solver in reactingParcelFoamCarbonTransfer
 do
     ldd "$FOAM_USER_APPBIN/$solver" | grep liblagrangianIntermediate || true
 done
