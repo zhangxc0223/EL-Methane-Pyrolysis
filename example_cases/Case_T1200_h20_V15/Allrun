@@ -1,0 +1,15 @@
+#!/bin/sh
+cd "${0%/*}" || exit
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions
+
+# Unpack the mesh if needed.
+if [ ! -d constant/polyMesh ]; then
+    tar -xzf constant/polyMesh.tar.gz -C constant || exit 1
+fi
+
+rm -rf 0
+cp -r 0.org 0
+
+runApplication decomposePar
+runParallel reactingParcelFoamCarbonTransfer
+runApplication reconstructPar -latestTime

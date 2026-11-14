@@ -1,0 +1,227 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2312                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      reactingCloud1Properties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          true;
+    coupled         true;
+    transient       yes;
+
+    maxCo           0.3;
+    cellValueSourceCorrection on;
+
+
+    sourceTerms
+    {
+        resetOnStartup  false;
+        schemes
+        {
+            rho             explicit 1;
+            U               explicit 1;
+            Yi              explicit 1;
+            h               explicit 1;
+            radiation       explicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        thermo:mu       cell;
+        T               cell;
+        Cp              cell;
+        kappa           cell;
+        p               cell;
+        G               cell;
+        curlUcDt        cellPoint;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+        T               analytical;
+    }
+}
+
+
+constantProperties
+{
+    T0              273;
+
+    // Initial particle properties; keep rho0 and Cp0 consistent with the injection model.
+    rho0            2000;
+    Cp0             700;
+
+    // Particle emissivity and scattering settings.
+    epsilon0        1;
+    f0              0.5;
+
+    hRetentionCoeff 0;
+    constantVolume  true;
+}
+
+
+subModels
+{
+    particleForces
+    {
+        sphereDrag;
+
+        BrownianMotion
+        {
+        lambda      4e-7;
+        turbulence  false;
+        spherical   false;
+        }
+
+        SaffmanMeiLiftForce
+        {
+            U U;
+        }
+        
+        gravity;
+    }
+
+    injectionModels
+    {
+        // Each cell can inject once every 0.1 s. Groups take turns.
+        // The gas carbon sink fires at the same time as parcel injection.
+        periodicCarbon
+        {
+            type                    periodicCellCarbonInjection;
+            SOI                     0;     // Required by the base model.
+            firstInjectionTime      0.1;   // First group starts at 0.1 s.
+            injectionInterval       0.1;   // Each cell injects at most once per 0.1 s.
+            staggerGroups           20;    // 20 groups, with events 0.005 s apart.
+            staggerHashResolution   1e-8;  // Position rounding for groups (m).
+
+            referenceField          C;     // Gas carbon mass fraction.
+            rhoField                rho;   // Gas density field.
+            rhoParticle             2000;  // Carbon density (kg/m3).
+            parcelsPerCell          1;     // One parcel per eligible cell per cycle.
+
+            // Required by the OpenFOAM injection base class.
+            // The actual parcel weight comes from local gas carbon mass.
+            massTotal               0.00001;
+            parcelBasisType         fixed;
+            nParticle               1;
+
+            U0                      (0 0 0);
+            useLocalU               true;
+            UField                  U;
+            useLocalT               true;
+            TField                  T;
+
+            sizeDistribution
+            {
+                type                fixedValue;
+                fixedValueDistribution
+                {
+                    value           1e-7;
+                }
+            }
+        }
+    }
+
+
+    dispersionModel stochasticDispersionRAS;
+
+    patchInteractionModel localInteraction;
+
+    localInteractionCoeffs
+    {
+        patches
+        (
+            inlet
+            {
+                type rebound;
+                e    0.97;
+                mu   0.09;
+            }
+
+            outlet
+            {
+                type escape;
+            }
+
+            tubeWall
+            {
+                type rebound;
+                e    0.97;
+                mu   0.09;
+            }
+
+        );
+    }
+    
+    heatTransferModel RanzMarshall;
+
+    compositionModel singleMixtureFraction;
+
+    phaseChangeModel none;
+
+    devolatilisationModel none;
+
+    surfaceReactionModel none;
+
+    stochasticCollisionModel none;
+
+    surfaceFilmModel none;
+
+    radiation       on;  // Particle absorption and emission
+
+    standardWallInteractionCoeffs
+    {
+        type            rebound;
+    }
+
+    RanzMarshallCoeffs
+    {
+        BirdCorrection  off;
+    }
+
+
+    singleMixtureFractionCoeffs
+    {
+        phases
+        (
+            gas
+            {
+            }
+            liquid
+            {
+            }
+            solid
+            {
+                C 1;
+            }
+        );
+        YGasTot0        0;
+        YLiquidTot0     0;
+        YSolidTot0      1;
+    }
+
+}
+
+
+cloudFunctions
+{
+}
+
+
+// ************************************************************************* //

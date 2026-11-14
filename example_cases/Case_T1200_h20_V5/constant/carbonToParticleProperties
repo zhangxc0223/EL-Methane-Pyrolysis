@@ -1,0 +1,31 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2312                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      carbonToParticleProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+active                          yes;       // Transfer gas carbon to parcels.
+carbonSpecie                    C;         // Gas species used for carbon transfer.
+
+// Match these values to the injection model in reactingCloud1Properties.
+usePhysicalTransferSchedule     yes;       // Use simulation time, including restarts.
+firstTransferTime               0.1;       // Same as firstInjectionTime (s) in reactingCloud1Properties.
+transferInterval                0.1;       // Same as injectionInterval (s) in reactingCloud1Properties.
+staggerGroups                   20;        // Same number of groups as the cloud in reactingCloud1Properties.
+
+minCarrierMassFraction          1e-12;     // Do not remove all gas mass from a cell.
+particleCp                      700;       // Particle heat capacity (J/kg/K).
+particleEnergyReferenceTemperature 298.15; // Reference temperature for particle energy (K).
+
+// ************************************************************************* //

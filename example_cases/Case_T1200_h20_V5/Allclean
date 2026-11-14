@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+cd "$(dirname "$0")"
+
+# Remove calculated times and the 0/ folder.
+foamListTimes -rm -noZero
+rm -rf 0 processor[0-9]*
+
+# Remove log files.
+rm -f log.decomposePar log.reactingParcelFoamCarbonTransfer log.reconstructPar
+
+# Remove the unpacked mesh, but keep the archive.
+if [ -f constant/polyMesh.tar.gz ]; then
+    rm -rf constant/polyMesh
+fi
